@@ -2457,8 +2457,8 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 **Preconditions:**
 - PRE-1. The instructor is logged into the system.
 - PRE-2. The instructor is assigned to the selected course section (BR-section-scoped-access).
-- PRE-3. The selected week is an active week for the course section (BR-active-weeks).
-- PRE-4. At least one weekly activity report or peer evaluation is due and its submission window is open.
+- PRE-3. The current reminder week is an active week for the course section (BR-reminder-eligibility).
+- PRE-4. At least one weekly activity report or peer evaluation is due today, its configured due time has not passed, and its submission window is open.
 
 **Postconditions:**
 - POST-1. Each selected, reminder-eligible student is sent one email identifying the item or items she has not submitted.
@@ -2468,9 +2468,9 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 **Main Success Scenario:**
 1. The instructor indicates to view students who have not submitted.
 2. The instructor selects one of the course sections to which she is assigned.
-3. The system identifies the weekly activity report, peer evaluation, or both that are currently due and whose submission windows are open.
+3. The system identifies the weekly activity report, peer evaluation, or both whose configured due day is today, whose due time has not passed, and whose submission window is open.
 4. The system finds the reminder-eligible students who have not submitted one or more of those items according to BR-reminder-eligibility.
-5. The system displays each student's name, team, missing item or items, due time, and the date and time of the most recent instructor-initiated nudge.
+5. The system displays each student's name, team, missing item or items, due time, and the date and time of the most recent successfully delivered reminder, whether scheduled or instructor-initiated.
 6. The instructor selects one or more students to nudge and confirms the selection.
 7. The system excludes any selected student for whom another nudge would violate BR-reminder-frequency and informs the instructor.
 8. The system displays the recipients and message for confirmation.
@@ -2483,7 +2483,7 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 - **2a. The instructor attempts to select a course section outside her assigned scope:**
   - 2a1. The system denies access without displaying student submission information (BR-section-scoped-access, BR-role-based-access; CO-ferpa).
   - 2a2. Use case ends.
-- **3a. The selected week is not active, no item is currently due, or every applicable submission window has closed:**
+- **3a. The current reminder week is not active, no item's configured due day is today, every due time has passed, or every applicable submission window has closed:**
   - 3a1. The system informs the instructor that no actionable submissions can be reminded for the selected course section and week.
   - 3a2. The system sends no reminders.
   - 3a3. Use case ends.
@@ -2496,16 +2496,16 @@ Details of a peer evaluation: The instructor may choose to see more details of o
 - **4c. Every eligible student has submitted every currently due item:**
   - 4c1. The system displays an empty list and informs the instructor that there are no students to remind.
   - 4c2. Use case ends.
-- **7a. Every selected student has already been nudged within the frequency limit:**
+- **7a. Every selected student has already received a reminder within the frequency limit:**
   - 7a1. The system sends no duplicate reminder and identifies the excluded students to the instructor (BR-reminder-frequency).
   - 7a2. Use case ends.
 - **10a. The email service rejects one or more recipient addresses:**
-  - 10a1. The system records each failed delivery, continues sending to the other selected students, and does not count a failed delivery as sent.
+  - 10a1. The system records each failed delivery, continues sending to the other selected students, and does not count a failed delivery against the daily limit; the instructor may retry it while the student remains eligible (BR-reminder-frequency).
   - 10a2. The system continues at step 11.
 
 **Priority:** High
 **Frequency of Use:** Approximately one instructor usage per course section on each configured weekly due day.
-**Business Rules:** BR-section-scoped-access, BR-role-based-access, BR-team-assignment-required, BR-active-weeks, BR-evaluation-submission-window, BR-reminder-eligibility, BR-reminder-frequency
+**Business Rules:** BR-section-scoped-access, BR-role-based-access, BR-team-assignment-required, BR-active-weeks, BR-evaluation-submission-window, BR-evaluation-private-comment, BR-reminder-eligibility, BR-reminder-frequency
 
 **Associated Information:**
 
@@ -2514,10 +2514,10 @@ Reminder eligibility and display:
 | Property name | Definition or display rule | Security/access concerns | Reference |
 | ---- | ---- | ---- | ---- |
 | Student | An active student enrolled in the selected course section and assigned to a team | Visible only to an instructor assigned to the course section or its course admin | BR-section-scoped-access, BR-role-based-access, CO-ferpa |
-| Weekly activity report submission | A current submission exists when the student has at least one activity recorded for the due week | Display only whether the item is missing, not its contents | BR-reminder-eligibility |
-| Peer evaluation submission | A current peer evaluation submission exists for the due week | Display only whether the item is missing, not ratings or comments | BR-evaluation-private-comment, CO-ferpa |
-| Missing items | The currently due weekly activity report, peer evaluation, or both for which no current submission exists | Include only missing items in the reminder | BR-reminder-eligibility |
-| Most recent nudge | The date and time of the most recent instructor-initiated nudge to the student | Used to enforce the daily limit | BR-reminder-frequency |
+| Weekly activity report submission | Completion is determined by BR-reminder-eligibility | Display only whether the item is missing, not its contents | BR-reminder-eligibility |
+| Peer evaluation submission | Completion is determined by BR-reminder-eligibility | Display only whether the item is missing, not ratings or comments | BR-reminder-eligibility, BR-evaluation-submission-window, BR-evaluation-private-comment, CO-ferpa |
+| Missing items | Determined independently for each item by BR-reminder-eligibility | Include only missing items in the reminder | BR-reminder-eligibility |
+| Most recent reminder | The date and time of the most recent successfully delivered scheduled or instructor-initiated reminder to the student for the course section | Used to enforce the shared daily limit | BR-reminder-frequency |
 
 The reminder email identifies the course section, missing item or items, and their due times. It does not include peer-evaluation ratings, public comments, or private comments. The instructor may cancel before confirming step 9.
 
